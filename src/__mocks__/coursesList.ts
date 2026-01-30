@@ -1,10 +1,11 @@
-export const mockCurrentCoursesList = [...mockedCoursesList];
+import type { Author, Course } from '../types/types';
 
 export const mockedCoursesList = [
   {
     id: 'de5aaa59-90f5-4dbc-b8a9-aaf205c551ba',
     title: 'JavaScript',
-    description: `Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged.`,
+    description:
+      "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged.",
     creationDate: '08/03/2021',
     duration: 160,
     authors: [
@@ -15,7 +16,8 @@ export const mockedCoursesList = [
   {
     id: 'b5630fdd-7bf7-4d39-b75a-2b5906fd0916',
     title: 'Angular',
-    description: `Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.`,
+    description:
+      "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.",
     creationDate: '10/11/2020',
     duration: 210,
     authors: [
@@ -23,7 +25,7 @@ export const mockedCoursesList = [
       '095a1817-d45b-4ed7-9cf7-b2417bcbf748',
     ],
   },
-];
+] as const satisfies readonly Course[];
 
 export const mockedAuthorsList = [
   {
@@ -42,4 +44,6 @@ export const mockedAuthorsList = [
     id: '095a1817-d45b-4ed7-9cf7-b2417bcbf748',
     name: 'Valentina Larina',
   },
-];
+] as const satisfies readonly Author[];
+
+export const mockCurrentCoursesList: Course[] = [...mockedCoursesList];
