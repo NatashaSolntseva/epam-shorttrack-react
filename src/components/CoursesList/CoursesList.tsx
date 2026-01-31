@@ -10,9 +10,11 @@ type Author = {
 type Props = {
   courses: readonly Course[];
   authors: readonly Author[];
+  onDelete?: (id: string) => void;
+  onShow?: (id: string) => void;
 };
 
-export function CoursesList({ courses, authors }: Props) {
+export function CoursesList({ courses, authors, onDelete, onShow }: Props) {
   const authorsById = Object.fromEntries(
     authors.map((a) => [a.id, a.name] as const)
   );
@@ -31,8 +33,8 @@ export function CoursesList({ courses, authors }: Props) {
         <CourseCard
           key={course.id}
           course={course}
-          onShow={(id) => console.log('show', id)}
-          onDelete={(id) => console.log('delete', id)}
+          onShow={onShow}
+          onDelete={onDelete}
           onEdit={(id) => console.log('edit', id)}
         />
       ))}
