@@ -11,3 +11,5 @@ export type Course = {
   duration: number;
   authors: string[];
 };
+
+export type View = 'list' | 'info';

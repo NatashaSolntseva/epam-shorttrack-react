@@ -1,8 +1,17 @@
 import { Button } from '@mui/material';
 
-export function SearchButton() {
+type Props = {
+  onClick: () => void;
+};
+
+export function SearchButton({ onClick }: Props) {
   return (
-    <Button variant="contained" disableElevation sx={{ px: 4, py: 1 }}>
+    <Button
+      variant="contained"
+      disableElevation
+      sx={{ px: 4, py: 1 }}
+      onClick={onClick}
+    >
       SEARCH
     </Button>
   );

@@ -1,8 +1,15 @@
 import { TextField } from '@mui/material';
 
-export function SearchInput() {
+type Props = {
+  value: string;
+  onChange: (value: string) => void;
+};
+
+export function SearchInput({ value, onChange }: Props) {
   return (
     <TextField
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
       placeholder="Input text"
       size="small"
       sx={{

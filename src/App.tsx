@@ -15,6 +15,7 @@ import {
   ensureCoursesInitialized,
   resetCoursesToMocks,
 } from './services/coursesStorage.ts';
+import { NoCoursesFound } from './components/NoCoursesFound/NoCoursesFound.tsx';
 
 function App() {
   const [courses, setCourses] = useState<Course[]>(() =>
@@ -24,16 +25,26 @@ function App() {
   const [view, setView] = useState<View>('list');
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
 
+  const [searchInput, setSearchInput] = useState<string>('');
+  const [appliedQuery, setAppliedQuery] = useState<string>('');
+
   const handleAdd = () => {
     const next = resetCoursesToMocks(mockedCoursesList);
     setCourses(next);
     setView('list');
     setSelectedCourseId(null);
+    setSearchInput('');
+    setAppliedQuery('');
   };
 
   const handleDelete = (id: string) => {
     const next = deleteCourse(id);
     setCourses(next);
+
+    if (next.length === 0) {
+      setSearchInput('');
+      setAppliedQuery('');
+    }
   };
 
   const handleShow = (id: string) => {
@@ -44,18 +55,41 @@ function App() {
   const handleBack = () => {
     setView('list');
     setSelectedCourseId(null);
+
+    setSearchInput('');
+    setAppliedQuery('');
   };
+
+  const handleSearch = () => {
+    setAppliedQuery(searchInput.trim());
+  };
+
+  const handleReset = () => {
+    setSearchInput('');
+    setAppliedQuery('');
+  };
+
+  const filteredCourses = useMemo(() => {
+    const query = appliedQuery.trim().toLowerCase();
+    if (!query) return courses;
+
+    return courses.filter((course) => {
+      const title = course.title.toLowerCase();
+      const desc = course.description.toLowerCase();
+      return title.includes(query) || desc.includes(query);
+    });
+  }, [courses, appliedQuery]);
 
   const selectedCourseRaw = useMemo(() => {
     if (!selectedCourseId) return null;
-    return courses.find((c) => c.id === selectedCourseId) ?? null;
+    return courses.find((course) => course.id === selectedCourseId) ?? null;
   }, [courses, selectedCourseId]);
 
   const selectedCourse = useMemo(() => {
     if (!selectedCourseRaw) return null;
 
     const authorsById = Object.fromEntries(
-      mockedAuthorsList.map((a) => [a.id, a.name] as const)
+      mockedAuthorsList.map((author) => [author.id, author.name] as const)
     );
 
     return {
@@ -80,13 +114,22 @@ function App() {
                 <EmptyCoursesList onAdd={handleAdd} />
               ) : (
                 <>
-                  <CoursesToolbar />
-                  <CoursesList
-                    courses={courses}
-                    authors={mockedAuthorsList}
-                    onDelete={handleDelete}
-                    onShow={handleShow}
+                  <CoursesToolbar
+                    searchValue={searchInput}
+                    onSearchValueChange={setSearchInput}
+                    onSearch={handleSearch}
+                    onReset={handleReset}
                   />
+                  {filteredCourses.length === 0 && appliedQuery.trim() ? (
+                    <NoCoursesFound query={appliedQuery.trim()} />
+                  ) : (
+                    <CoursesList
+                      courses={filteredCourses}
+                      authors={mockedAuthorsList}
+                      onDelete={handleDelete}
+                      onShow={handleShow}
+                    />
+                  )}
                 </>
               )}
             </>
