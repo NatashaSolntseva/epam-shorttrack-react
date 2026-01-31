@@ -42,7 +42,7 @@ export const mockedAuthorsList = [
   },
   {
     id: '095a1817-d45b-4ed7-9cf7-b2417bcbf748',
-    name: 'Valentina Larina',
+    name: 'Valentina Alexandrovna Larina',
   },
 ] as const satisfies readonly Author[];
 
