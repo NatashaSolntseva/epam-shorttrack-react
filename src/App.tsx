@@ -16,6 +16,7 @@ import {
   resetCoursesToMocks,
 } from './services/coursesStorage.ts';
 import { NoCoursesFound } from './components/NoCoursesFound/NoCoursesFound.tsx';
+// import { Login } from './components/Login/Login.tsx';
 
 function App() {
   const [courses, setCourses] = useState<Course[]>(() =>
@@ -107,6 +108,7 @@ function App() {
         component="main"
         sx={{ bgcolor: '#e9e9e9', minHeight: '100vh', py: 3 }}
       >
+        {/* <Login onLogin={(email, password) => console.log(email, password)} /> */}
         <Container maxWidth="lg" sx={{ mt: 3 }}>
           {view === 'list' && (
             <>
