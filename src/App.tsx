@@ -8,7 +8,7 @@ import {
 import { CoursesList } from './components/CoursesList/CoursesList.tsx';
 import { CourseInfo } from './components/CourseInfo/CourseInfo.tsx';
 import { EmptyCoursesList } from './components/EmptyCoursesList/EmptyCoursesList.tsx';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { Course, View } from './types/types.ts';
 import {
   deleteCourse,
@@ -26,6 +26,7 @@ import {
 } from './services/authService.ts';
 import { Login } from './components/Login/Login.tsx';
 import { CourseFormModal } from './components/CourseFormModal/CourseFormModal.tsx';
+import { fetchAuthors, fetchCourses } from './services/coursesApi.ts';
 
 function App() {
   const [isAuth, setIsAuth] = useState<boolean>(() => Boolean(getToken()));
@@ -168,6 +169,15 @@ function App() {
       setAuthError('Something went wrong');
     }
   };
+
+  useEffect(() => {
+    Promise.all([fetchAuthors(), fetchCourses()])
+      .then(([authors, courses]) => {
+        console.log('[API] authors:', authors);
+        console.log('[API] courses:', courses);
+      })
+      .catch((e) => console.error('[API] load error:', e));
+  }, []);
 
   return (
     <>
