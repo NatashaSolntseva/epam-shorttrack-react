@@ -1,4 +1,5 @@
 export const AUTH_TOKEN_KEY = 'auth_token';
+export const AUTH_USER_KEY = 'auth_user';
 
 export type LoginRequest = {
   username: string;
@@ -17,3 +18,5 @@ export type LoginResponse = {
   accessToken: string;
   refreshToken: string;
 };
+
+export type AuthUser = Omit<LoginResponse, 'accessToken' | 'refreshToken'>;

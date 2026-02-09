@@ -6,17 +6,16 @@ import { LoginFormField } from './LoginFormField';
 import { AppButton } from '../AppButton/AppButton';
 
 type Props = {
-  onLogin?: (email: string, password: string) => void;
+  onLogin?: (userName: string, password: string) => void;
 };
 
 export function Login({ onLogin }: Props) {
-  const [email, setEmail] = useState('');
+  const [userName, setUserName] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.SubmitEvent) => {
     e.preventDefault();
-    onLogin?.(email, password);
-    console.log('login', { email, password });
+    onLogin?.(userName, password);
   };
 
   return (
@@ -26,7 +25,6 @@ export function Login({ onLogin }: Props) {
         display: 'flex',
         alignItems: 'flex-start',
         justifyContent: 'center',
-        pt: 6,
         px: 2,
       }}
     >
@@ -52,9 +50,9 @@ export function Login({ onLogin }: Props) {
             >
               <Box sx={{ width: 200 }}>
                 <LoginFormField
-                  label="Email"
-                  value={email}
-                  onChange={setEmail}
+                  label="User Name"
+                  value={userName}
+                  onChange={setUserName}
                 />
               </Box>
 

@@ -1,9 +1,14 @@
 import { Button } from '@mui/material';
 
-export function LoginButton() {
+type Props = {
+  isAuthenticated: boolean;
+  onClick: () => void;
+};
+
+export function LoginButton({ isAuthenticated, onClick }: Props) {
   return (
-    <Button variant="contained" disableElevation>
-      LOGOUT
+    <Button variant="contained" disableElevation onClick={onClick}>
+      {isAuthenticated ? 'LOGOUT' : 'LOGIN'}
     </Button>
   );
 }

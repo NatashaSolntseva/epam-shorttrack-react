@@ -16,9 +16,22 @@ import {
   resetCoursesToMocks,
 } from './services/coursesStorage.ts';
 import { NoCoursesFound } from './components/NoCoursesFound/NoCoursesFound.tsx';
-// import { Login } from './components/Login/Login.tsx';
+import {
+  clearToken,
+  clearUser,
+  getToken,
+  getUser,
+  login,
+} from './services/authService.ts';
+import { Login } from './components/Login/Login.tsx';
 
 function App() {
+  const [isAuth, setIsAuth] = useState<boolean>(() => Boolean(getToken()));
+  const [userName, setUserName] = useState<string>(() => {
+    const user = getUser();
+    return user ? `${user.firstName} ${user.lastName}`.trim() : '';
+  });
+
   const [courses, setCourses] = useState<Course[]>(() =>
     ensureCoursesInitialized(mockedCoursesList)
   );
@@ -29,13 +42,17 @@ function App() {
   const [searchInput, setSearchInput] = useState<string>('');
   const [appliedQuery, setAppliedQuery] = useState<string>('');
 
-  const handleAdd = () => {
-    const next = resetCoursesToMocks(mockedCoursesList);
-    setCourses(next);
+  const resetCoursesFlowState = () => {
     setView('list');
     setSelectedCourseId(null);
     setSearchInput('');
     setAppliedQuery('');
+  };
+
+  const handleAdd = () => {
+    const next = resetCoursesToMocks(mockedCoursesList);
+    setCourses(next);
+    resetCoursesFlowState();
   };
 
   const handleDelete = (id: string) => {
@@ -101,48 +118,80 @@ function App() {
     };
   }, [selectedCourseRaw]);
 
+  const handleAuthButtonClick = () => {
+    if (isAuth) {
+      clearToken();
+      clearUser();
+
+      setIsAuth(false);
+      setUserName('');
+
+      resetCoursesFlowState();
+    }
+  };
+
+  const handleLogin = async (username: string, password: string) => {
+    await login({ username, password });
+
+    setIsAuth(true);
+
+    const user = getUser();
+    setUserName(user ? `${user.firstName} ${user.lastName}`.trim() : '');
+
+    resetCoursesFlowState();
+  };
+
   return (
     <>
-      <Header />
+      <Header
+        isAuthenticated={isAuth}
+        userName={userName}
+        onAuthButtonClick={handleAuthButtonClick}
+      />
+
       <Box
         component="main"
         sx={{ bgcolor: '#e9e9e9', minHeight: '100vh', py: 3 }}
       >
-        {/* <Login onLogin={(email, password) => console.log(email, password)} /> */}
-        <Container maxWidth="lg" sx={{ mt: 3 }}>
-          {view === 'list' && (
-            <>
-              {courses.length === 0 ? (
-                <EmptyCoursesList onAdd={handleAdd} />
-              ) : (
-                <>
-                  <CoursesToolbar
-                    searchValue={searchInput}
-                    onSearchValueChange={setSearchInput}
-                    onSearch={handleSearch}
-                    onReset={handleReset}
-                  />
-                  {filteredCourses.length === 0 && appliedQuery.trim() ? (
-                    <NoCoursesFound query={appliedQuery.trim()} />
-                  ) : (
-                    <CoursesList
-                      courses={filteredCourses}
-                      authors={mockedAuthorsList}
-                      onDelete={handleDelete}
-                      onShow={handleShow}
+        {!isAuth ? (
+          <Login onLogin={handleLogin} />
+        ) : (
+          <Container maxWidth="lg" sx={{ mt: 3 }}>
+            {view === 'list' && (
+              <>
+                {courses.length === 0 ? (
+                  <EmptyCoursesList onAdd={handleAdd} />
+                ) : (
+                  <>
+                    <CoursesToolbar
+                      searchValue={searchInput}
+                      onSearchValueChange={setSearchInput}
+                      onSearch={handleSearch}
+                      onReset={handleReset}
                     />
-                  )}
-                </>
-              )}
-            </>
-          )}
 
-          {view === 'info' && selectedCourse && (
-            <CourseInfo course={selectedCourse} onBack={handleBack} />
-          )}
+                    {filteredCourses.length === 0 && appliedQuery.trim() ? (
+                      <NoCoursesFound query={appliedQuery.trim()} />
+                    ) : (
+                      <CoursesList
+                        courses={filteredCourses}
+                        authors={mockedAuthorsList}
+                        onDelete={handleDelete}
+                        onShow={handleShow}
+                      />
+                    )}
+                  </>
+                )}
+              </>
+            )}
 
-          {view === 'info' && !selectedCourse && <div>Course not found</div>}
-        </Container>
+            {view === 'info' && selectedCourse && (
+              <CourseInfo course={selectedCourse} onBack={handleBack} />
+            )}
+
+            {view === 'info' && !selectedCourse && <div>Course not found</div>}
+          </Container>
+        )}
       </Box>
     </>
   );
