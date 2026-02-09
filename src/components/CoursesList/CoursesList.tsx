@@ -12,9 +12,16 @@ type Props = {
   authors: readonly Author[];
   onDelete?: (id: string) => void;
   onShow?: (id: string) => void;
+  onEdit?: (id: string) => void;
 };
 
-export function CoursesList({ courses, authors, onDelete, onShow }: Props) {
+export function CoursesList({
+  courses,
+  authors,
+  onDelete,
+  onShow,
+  onEdit,
+}: Props) {
   const authorsById = Object.fromEntries(
     authors.map((a) => [a.id, a.name] as const)
   );
@@ -35,7 +42,7 @@ export function CoursesList({ courses, authors, onDelete, onShow }: Props) {
           course={course}
           onShow={onShow}
           onDelete={onDelete}
-          onEdit={(id) => console.log('edit', id)}
+          onEdit={onEdit}
         />
       ))}
     </Container>

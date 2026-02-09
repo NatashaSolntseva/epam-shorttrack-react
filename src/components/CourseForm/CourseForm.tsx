@@ -1,3 +1,5 @@
+import { useMemo, useState } from 'react';
+
 import {
   Box,
   Button,
@@ -9,9 +11,12 @@ import {
   Typography,
 } from '@mui/material';
 import { CourseAuthorsSection } from './CourseAuthorsSection';
-import { useMemo, useState } from 'react';
-import type { Author } from '../../types/types';
-import type { CreateCoursePayload } from '../../services/coursesApi';
+
+import type { Author, Course } from '../../types/types';
+import type {
+  CreateCoursePayload,
+  UpdateCoursePayload,
+} from '../../services/coursesApi';
 import { formatDate, formatDuration } from '../../ulils';
 import { toMMDDYYYY } from '../../ulils/formatDate';
 
@@ -22,7 +27,12 @@ type Props = {
   onAuthorsChange: (updater: (prev: Author[]) => Author[]) => void;
 
   onCancel?: () => void;
-  onSubmit?: (payload: CreateCoursePayload) => void | Promise<void>;
+  onSubmit?: (
+    payload: CreateCoursePayload | UpdateCoursePayload,
+    id?: string
+  ) => void | Promise<void>;
+
+  initialCourse?: Course | null;
 };
 
 type Touched = {
@@ -53,15 +63,27 @@ export function CourseForm({
   onAuthorsChange,
   onCancel,
   onSubmit,
+  initialCourse = null,
 }: Props) {
   const isEdit = mode === 'edit';
 
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [duration, setDuration] = useState('');
+  const [title, setTitle] = useState(() =>
+    isEdit ? (initialCourse?.title ?? '') : ''
+  );
+  const [description, setDescription] = useState(() =>
+    isEdit ? (initialCourse?.description ?? '') : ''
+  );
+  const [duration, setDuration] = useState(() =>
+    isEdit ? String(initialCourse?.duration ?? '') : ''
+  );
+
+  const [courseAuthorIds, setCourseAuthorIds] = useState<string[]>(() =>
+    isEdit && initialCourse && Array.isArray(initialCourse.authors)
+      ? initialCourse.authors
+      : []
+  );
 
   const [authorName, setAuthorName] = useState('');
-  const [courseAuthorIds, setCourseAuthorIds] = useState<string[]>([]);
 
   const [touched, setTouched] = useState<Touched>({
     title: false,
@@ -112,6 +134,22 @@ export function CourseForm({
     if (!isValid) return;
 
     const durationMinutes = Number(duration.trim());
+
+    if (isEdit) {
+      if (!initialCourse?.id) return;
+
+      const payload: UpdateCoursePayload = {
+        title: title.trim(),
+        description: description.trim(),
+        creationDate:
+          initialCourse.creationDate ?? formatDate(toMMDDYYYY(new Date())),
+        duration: durationMinutes,
+        authors: courseAuthorIds,
+      };
+
+      await onSubmit?.(payload, initialCourse.id);
+      return;
+    }
 
     const payload: CreateCoursePayload = {
       title: title.trim(),
