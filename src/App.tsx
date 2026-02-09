@@ -1,20 +1,11 @@
 import { Box, Container } from '@mui/material';
 import { Header } from './components/Header/Header';
 import { CoursesToolbar } from './components/CoursesToolbar/CoursesToolbar';
-import {
-  mockedCoursesList,
-  mockedAuthorsList,
-} from './__mocks__/coursesList.ts';
 import { CoursesList } from './components/CoursesList/CoursesList.tsx';
 import { CourseInfo } from './components/CourseInfo/CourseInfo.tsx';
 import { EmptyCoursesList } from './components/EmptyCoursesList/EmptyCoursesList.tsx';
 import { useEffect, useMemo, useState } from 'react';
-import type { Course, View } from './types/types.ts';
-import {
-  deleteCourse,
-  ensureCoursesInitialized,
-  resetCoursesToMocks,
-} from './services/coursesStorage.ts';
+import type { Author, Course, View } from './types/types.ts';
 import { NoCoursesFound } from './components/NoCoursesFound/NoCoursesFound.tsx';
 import {
   AuthError,
@@ -26,7 +17,14 @@ import {
 } from './services/authService.ts';
 import { Login } from './components/Login/Login.tsx';
 import { CourseFormModal } from './components/CourseFormModal/CourseFormModal.tsx';
-import { fetchAuthors, fetchCourses } from './services/coursesApi.ts';
+import {
+  deleteCourseById,
+  fetchAuthors,
+  fetchCourses,
+  type CreateCoursePayload,
+  createCourse,
+} from './services/coursesApi.ts';
+import { Loader } from './components/Loader/Loader.tsx';
 
 function App() {
   const [isAuth, setIsAuth] = useState<boolean>(() => Boolean(getToken()));
@@ -35,10 +33,10 @@ function App() {
     return user ? `${user.firstName} ${user.lastName}`.trim() : '';
   });
   const [authError, setAuthError] = useState('');
+  const [isLoaded, setIsLoaded] = useState<boolean>(false);
 
-  const [courses, setCourses] = useState<Course[]>(() =>
-    ensureCoursesInitialized(mockedCoursesList)
-  );
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [authors, setAuthors] = useState<Author[]>([]);
 
   const [view, setView] = useState<View>('list');
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
@@ -58,19 +56,22 @@ function App() {
     setAppliedQuery('');
   };
 
-  const handleAdd = () => {
-    const next = resetCoursesToMocks(mockedCoursesList);
-    setCourses(next);
-    resetCoursesFlowState();
-  };
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteCourseById(id);
 
-  const handleDelete = (id: string) => {
-    const next = deleteCourse(id);
-    setCourses(next);
+      setCourses((prev) => {
+        const next = prev.filter((course) => course.id !== id);
 
-    if (next.length === 0) {
-      setSearchInput('');
-      setAppliedQuery('');
+        if (next.length === 0) {
+          setSearchInput('');
+          setAppliedQuery('');
+        }
+
+        return next;
+      });
+    } catch (e) {
+      console.error('[API] delete error:', e);
     }
   };
 
@@ -116,7 +117,7 @@ function App() {
     if (!selectedCourseRaw) return null;
 
     const authorsById = Object.fromEntries(
-      mockedAuthorsList.map((author) => [author.id, author.name] as const)
+      authors.map((author) => [author.id, author.name] as const)
     );
 
     return {
@@ -125,7 +126,7 @@ function App() {
         (id) => authorsById[id] ?? 'Unknown author'
       ),
     };
-  }, [selectedCourseRaw]);
+  }, [selectedCourseRaw, authors]);
 
   const handleAuthButtonClick = () => {
     if (isAuth) {
@@ -173,10 +174,11 @@ function App() {
   useEffect(() => {
     Promise.all([fetchAuthors(), fetchCourses()])
       .then(([authors, courses]) => {
-        console.log('[API] authors:', authors);
-        console.log('[API] courses:', courses);
+        setCourses(courses);
+        setAuthors(authors);
       })
-      .catch((e) => console.error('[API] load error:', e));
+      .catch((e) => console.error('[API] load error:', e))
+      .finally(() => setIsLoaded(true));
   }, []);
 
   return (
@@ -201,8 +203,10 @@ function App() {
           <Container maxWidth="lg" sx={{ mt: 3 }}>
             {view === 'list' && (
               <>
-                {courses.length === 0 ? (
-                  <EmptyCoursesList onAdd={handleAdd} />
+                {!isLoaded ? (
+                  <Loader />
+                ) : courses.length === 0 ? (
+                  <EmptyCoursesList onAdd={openCourseForm} />
                 ) : (
                   <>
                     <CoursesToolbar
@@ -218,7 +222,7 @@ function App() {
                     ) : (
                       <CoursesList
                         courses={filteredCourses}
-                        authors={mockedAuthorsList}
+                        authors={authors}
                         onDelete={handleDelete}
                         onShow={handleShow}
                       />
@@ -240,10 +244,13 @@ function App() {
         open={isCourseFormOpen}
         mode="create"
         onClose={closeCourseForm}
-        onSubmit={() => {
-          console.log('submit course');
+        authors={authors}
+        onSubmit={async (payload: CreateCoursePayload) => {
+          const created = await createCourse(payload);
+          setCourses((prev) => [created, ...prev]);
           closeCourseForm();
         }}
+        onAuthorsChange={setAuthors}
       />
     </>
   );

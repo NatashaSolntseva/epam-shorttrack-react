@@ -80,3 +80,11 @@ export async function createAuthor(
     throw toApiError(e);
   }
 }
+
+export async function deleteAuthorById(id: string): Promise<void> {
+  try {
+    await api.delete(`/authors/${encodeURIComponent(id)}`);
+  } catch (e) {
+    throw toApiError(e);
+  }
+}
