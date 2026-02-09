@@ -17,6 +17,7 @@ import {
 } from './services/coursesStorage.ts';
 import { NoCoursesFound } from './components/NoCoursesFound/NoCoursesFound.tsx';
 import {
+  AuthError,
   clearToken,
   clearUser,
   getToken,
@@ -31,6 +32,7 @@ function App() {
     const user = getUser();
     return user ? `${user.firstName} ${user.lastName}`.trim() : '';
   });
+  const [authError, setAuthError] = useState('');
 
   const [courses, setCourses] = useState<Course[]>(() =>
     ensureCoursesInitialized(mockedCoursesList)
@@ -131,14 +133,34 @@ function App() {
   };
 
   const handleLogin = async (username: string, password: string) => {
-    await login({ username, password });
+    setAuthError('');
 
-    setIsAuth(true);
+    try {
+      await login({ username, password });
 
-    const user = getUser();
-    setUserName(user ? `${user.firstName} ${user.lastName}`.trim() : '');
+      setIsAuth(true);
 
-    resetCoursesFlowState();
+      const user = getUser();
+      setUserName(user ? `${user.firstName} ${user.lastName}`.trim() : '');
+
+      resetCoursesFlowState();
+    } catch (e) {
+      setIsAuth(false);
+
+      if (e instanceof AuthError) {
+        const msg = e.message.toLowerCase();
+
+        if (msg.includes('invalid credentials')) {
+          setAuthError('Invalid username or password');
+        } else {
+          setAuthError(e.message || 'Something went wrong');
+        }
+
+        return;
+      }
+
+      setAuthError('Something went wrong');
+    }
   };
 
   return (
@@ -154,7 +176,11 @@ function App() {
         sx={{ bgcolor: '#e9e9e9', minHeight: '100vh', py: 3 }}
       >
         {!isAuth ? (
-          <Login onLogin={handleLogin} />
+          <Login
+            onLogin={handleLogin}
+            serverError={authError}
+            onServerErrorClear={() => setAuthError('')}
+          />
         ) : (
           <Container maxWidth="lg" sx={{ mt: 3 }}>
             {view === 'list' && (
