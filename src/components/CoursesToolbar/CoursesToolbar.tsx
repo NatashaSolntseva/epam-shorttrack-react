@@ -7,6 +7,7 @@ type Props = {
   onSearchValueChange: (value: string) => void;
   onSearch: () => void;
   onReset: () => void;
+  onAddCourse: () => void;
 };
 
 export function CoursesToolbar({
@@ -14,6 +15,7 @@ export function CoursesToolbar({
   onSearchValueChange,
   onSearch,
   onReset,
+  onAddCourse,
 }: Props) {
   return (
     <Box
@@ -35,7 +37,7 @@ export function CoursesToolbar({
         onSearch={onSearch}
         onReset={onReset}
       />
-      <AddNewCourseButton />
+      <AddNewCourseButton onClick={onAddCourse} />
     </Box>
   );
 }

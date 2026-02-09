@@ -25,6 +25,7 @@ import {
   login,
 } from './services/authService.ts';
 import { Login } from './components/Login/Login.tsx';
+import { CourseFormModal } from './components/CourseFormModal/CourseFormModal.tsx';
 
 function App() {
   const [isAuth, setIsAuth] = useState<boolean>(() => Boolean(getToken()));
@@ -43,6 +44,11 @@ function App() {
 
   const [searchInput, setSearchInput] = useState<string>('');
   const [appliedQuery, setAppliedQuery] = useState<string>('');
+
+  const [isCourseFormOpen, setIsCourseFormOpen] = useState(false);
+
+  const openCourseForm = () => setIsCourseFormOpen(true);
+  const closeCourseForm = () => setIsCourseFormOpen(false);
 
   const resetCoursesFlowState = () => {
     setView('list');
@@ -194,6 +200,7 @@ function App() {
                       onSearchValueChange={setSearchInput}
                       onSearch={handleSearch}
                       onReset={handleReset}
+                      onAddCourse={openCourseForm}
                     />
 
                     {filteredCourses.length === 0 && appliedQuery.trim() ? (
@@ -219,6 +226,15 @@ function App() {
           </Container>
         )}
       </Box>
+      <CourseFormModal
+        open={isCourseFormOpen}
+        mode="create"
+        onClose={closeCourseForm}
+        onSubmit={() => {
+          console.log('submit course');
+          closeCourseForm();
+        }}
+      />
     </>
   );
 }
